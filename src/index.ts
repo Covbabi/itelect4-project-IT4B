@@ -1,4 +1,4 @@
-import type { User, Course, Submission, StringOrNumber } from "../types/sample";
+import type { User, Course, Submission, StringOrNumber } from "../types";
 
 // ===== PRIMITIVE TYPE ANNOTATIONS =====
 // Variables with explicit types
