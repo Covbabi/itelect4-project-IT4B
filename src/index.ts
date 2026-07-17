@@ -43,8 +43,8 @@ throw new Error(message);
 // ===== USING INTERFACES =====
 const student: User = {
 id: 1,
-name: "Juan dela Cruz",
-email: "juan@example.com",
+name: "Jacov Andre Endaya",
+email: "jacov@gmail.com",
 role: "student",
 isActive: true,
 };
@@ -79,4 +79,57 @@ return value; // TypeScript knows: it's a string
 }
 console.log(processInput("hello")); // HELLO
 console.log(processInput(3.14159)); // 3.14
-console.log(formatDate(new Date())); // e.g. 7/4/2026
+console.log(formatDate(new Date())); // e.g. 7/4/
+
+//////////////////////////////////
+
+// ===== GENERIC FUNCTIONS =====
+// T is inferred automatically from whatever array you pass in
+function getFirst<T>(items: T[]): T | undefined {
+return items[0];
+}
+// Constrained generic -- T must have an "id: number" field
+function getById<T extends { id: number }>(
+items: T[],
+id: number
+): T | undefined {
+return items.find((item) => item.id === id);
+}
+// [student] is an array containing one element
+const firstUser = getFirst<User>([student]);
+const foundUser = getById<User>([student], 1);
+// Each ?. checks whether the object on its left exists before trying to access the next property,
+
+console.log(firstUser?.name); // Jacov Andre Endaya
+console.log(foundUser?.email); // jacov@gmail.com
+
+///////////////////////////////////////////
+
+// ===== USING UTILITY TYPES =====
+import type { UserUpdate, UserPreview, PublicUser, RoleCount } from "../types/index";
+// Partial<T> -- update payload only needs the changed fields
+const patch: UserUpdate = { name: "Juan D. Cruz" };
+// Pick<T,K> -- a lightweight preview object
+const preview: UserPreview = { id: 1, name: "Juan dela Cruz", role: "student" };
+// Omit<T,K> -- safe to expose publicly (no email, no isActive)
+const publicProfile: PublicUser = { id: 1, name: "Juan dela Cruz", role: "student" };
+// Record<K,T> -- dashboard-style counts
+const roleCount: RoleCount = { student: 45, admin: 2, instructor: 3 };
+// ===== ReturnType<T> =====
+function makeSubmission(courseCode: string) {
+return { id: 1, studentId: 1, courseCode, submittedAt: new Date() };
+}
+// Infer the shape directly from the function -- no need to redeclare it
+type NewSubmission = ReturnType<typeof makeSubmission>;
+const gt1Submission: NewSubmission = makeSubmission("ITELECT4");
+
+/////////////////////////////////
+
+// ===== USING ENUMS =====
+import { SubmissionStatus, Role } from "../types/index";
+let status: SubmissionStatus = SubmissionStatus.Pending;
+console.log(SubmissionStatus[status]); // "Pending" -- reverse mapping
+status = SubmissionStatus.Graded;
+console.log(status === SubmissionStatus.Graded); // true
+const currentRole: Role = Role.Student;
+console.log(currentRole); // "student"
