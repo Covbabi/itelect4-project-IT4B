@@ -1,0 +1,58 @@
+:root{
+  --bg-start:#f8fafc;
+  --bg-mid:#eef2ff;
+  --bg-end:#f0fbfb;
+  --bg-gradient:linear-gradient(135deg,#f8fafc 0%,#eef2ff 45%,#e6fbff 100%);
+  --surface:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,255,0.92));
+  --muted:#475569;
+  --text:#0f172a;
+  --accent:#fb7185;
+  --accent-2:#06b6d4;
+  --accent-3:#f59e0b;
+  --glass:rgba(255,255,255,0.8);
+  --border:rgba(15,23,42,0.06);
+  --shadow:0 10px 30px rgba(15,23,42,0.06);
+  --glow:0 8px 30px rgba(99,102,241,0.08);
+  /* Tweakable theme tokens for header, buttons, and cards */
+  --header-start:#4f46e5;
+  --header-end:#06b6d4;
+  --btn-start:#06b6d4;
+  --btn-end:#8b5cf6;
+  --card-bg:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));
+  --card-border:rgba(255,255,255,0.03);
+  --card-shadow:0 24px 60px rgba(2,6,23,0.6);
+  /* Roundedness tokens */
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:24px;
+  --radius-xl:28px;
+  --radius-pill:999px;
+  --sans:Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono:ui-monospace, Consolas, monospace;
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.6;
+  color:var(--text);
+  background:var(--bg-gradient);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh}
+
+/* Root app container */
+#root{max-width:1200px;margin:0 auto;padding:28px}
+
+/* Typography */
+h1{font-size:2.8rem;margin:20px 0;color:var(--text)}
+h2{font-size:1.25rem;margin:0;color:var(--text)}
+p{margin:0;color:var(--muted)}
+
+code{font-family:var(--mono);background:rgba(255,255,255,0.03);padding:4px 8px;border-radius:6px;color:var(--text)}
+
+@media (prefers-color-scheme:dark){
+  :root{--bg:#071233;--surface:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));--text:#e6eef8;--muted:#94a3b8}
+  body{background:var(--bg-gradient);color:var(--text)}
+}
