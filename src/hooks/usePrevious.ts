@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 
-// Generic T hook with explicit return type T | undefined
+
 function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T | undefined>(undefined);
 

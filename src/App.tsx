@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } from "react";
 import type { Claim, Item, User } from "./types/index";
 import useToggle from "./hooks/useToggle";
 import usePrevious from "./hooks/usePrevious";
@@ -16,7 +16,7 @@ interface FormStateItem {
   reportedBy: string;
 }
 
-// Initial Mock Data (Simulated Fetch)
+
 const mockUsers: User[] = [
   { id: 1, name: "Juan dela Cruz", email: "juan@example.com", role: "student", isActive: true },
   { id: 2, name: "Maria Clara", email: "maria@example.com", role: "student", isActive: true },
@@ -28,7 +28,7 @@ const mockItems: Item[] = [
 ];
 
 function App() {
-  // ===== 1. TYPED STATE WITH useState<T> =====
+  
   const [users, setUsers] = useState<User[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [claims, setClaims] = useState<(Claim & { status: "pending" | "verified"; itemTitle: string })[]>([]);
@@ -36,22 +36,22 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Form States
+  
   const [userForm, setUserForm] = useState<FormStateUser>({ name: "", email: "" });
   const [itemForm, setItemForm] = useState<FormStateItem>({ title: "", location: "", status: "lost", reportedBy: "" });
 
-  // ===== 2. CUSTOM HOOKS =====
+  
   const [showForms, toggleForms] = useToggle(true);
   const previousSearch = usePrevious(searchTerm);
 
-  // ===== 3. TYPED DOM REFERENCE WITH useRef =====
+  
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const focusSearchInput = (): void => {
     searchInputRef.current?.focus();
   };
 
-  // ===== 4. LOADING MOCK DATA WITH useEffect ON MOUNT =====
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
@@ -62,7 +62,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // ===== 5. TYPED DOM EVENT HANDLERS =====
+
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(event.target.value);
   };
@@ -128,17 +128,25 @@ function App() {
     );
   };
 
-  // Derived Filtered List computed during render
-  const filteredItems = items.filter((item) =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+  const filteredItems = useMemo(() => {
+    if (!normalizedSearchTerm) {
+      return items;
+    }
+
+    return items.filter((item) => {
+      const searchableText = `${item.title} ${item.location} ${item.description}`.toLowerCase();
+      return searchableText.includes(normalizedSearchTerm);
+    });
+  }, [items, normalizedSearchTerm]);
 
   const lostItems = items.filter((item) => item.status === "lost");
   const foundItems = items.filter((item) => item.status === "found");
   const claimedItems = claims.map((claim) => claim);
 
-  // Early return while loading
+  
   if (isLoading) {
     return (
       <main className="app-shell">
@@ -159,7 +167,7 @@ function App() {
         </div>
       </header>
 
-      {/* SEARCH AND CONTROL BAR */}
+      
       <div style={{ margin: "16px 0", display: "flex", gap: "10px", alignItems: "center" }}>
         <input
           ref={searchInputRef}
@@ -228,7 +236,7 @@ function App() {
 
       <div className="grid grid-wide">
         <div>
-          {/* USERS SECTION */}
+       
           <section className="form-panel">
             <h2>Users</h2>
             {showForms && (
@@ -272,7 +280,7 @@ function App() {
             </div>
           </section>
 
-          {/* ITEMS SECTION */}
+         
           <section className="form-panel" style={{ marginTop: 18 }}>
             <h2>Items (Lost/Found Posts)</h2>
             {showForms && (
@@ -311,7 +319,7 @@ function App() {
             <div className="items-list">
               <h3>Items ({filteredItems.length})</h3>
               {filteredItems.length === 0 ? (
-                <p>No items found.</p>
+                <p>{searchTerm.trim() ? `No items found for "${searchTerm.trim()}".` : "No items found."}</p>
               ) : (
                 <ul>
                   {filteredItems.map((item) => (
@@ -342,7 +350,7 @@ function App() {
         </div>
 
         <aside>
-          {/* CLAIMS SECTION */}
+         
           <section className="claim-list">
             <h2>Claims (Pending Verification)</h2>
             {claims.length === 0 ? (

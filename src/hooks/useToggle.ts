@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-// Explicit return type: tuple [boolean, toggle function]
+
 function useToggle(initialValue: boolean = false): [boolean, () => void] {
   const [value, setValue] = useState<boolean>(initialValue);
 
