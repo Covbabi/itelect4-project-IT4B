@@ -2,7 +2,10 @@ import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } from "re
 import type { Claim, Item, User } from "./types/index";
 import useToggle from "./hooks/useToggle";
 import usePrevious from "./hooks/usePrevious";
-import "./App.css";
+
+import UserCard from "./components/UserCard";
+import CourseCard from "./components/CourseCard";
+import SubmissionBadge from "./components/SubmissionBadge";
 
 interface FormStateUser {
   name: string;
@@ -16,52 +19,51 @@ interface FormStateItem {
   reportedBy: string;
 }
 
-
 const mockUsers: User[] = [
   { id: 1, name: "Juan dela Cruz", email: "juan@example.com", role: "student", isActive: true },
   { id: 2, name: "Maria Clara", email: "maria@example.com", role: "student", isActive: true },
 ];
 
 const mockItems: Item[] = [
-  { id: 101, title: "Blue Hydro Flask", description: "found item", location: "Library 2nd Floor", reportedBy: 1, status: "found" },
-  { id: 102, title: "Black Wallet", description: "lost item", location: "Gymnasium", reportedBy: 2, status: "lost" },
+  { id: 101, title: "Blue Hydro Flask", description: "Found blue insulated bottle", location: "Library 2nd Floor", reportedBy: 1, status: "found" },
+  { id: 102, title: "Black Wallet", description: "Leather wallet with IDs", location: "Gymnasium", reportedBy: 2, status: "lost" },
 ];
 
 function App() {
-  
   const [users, setUsers] = useState<User[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [claims, setClaims] = useState<(Claim & { status: "pending" | "verified"; itemTitle: string })[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  
+  // Loading & Error States
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
+
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  
   const [userForm, setUserForm] = useState<FormStateUser>({ name: "", email: "" });
   const [itemForm, setItemForm] = useState<FormStateItem>({ title: "", location: "", status: "lost", reportedBy: "" });
 
-  
+  // Custom Hooks
   const [showForms, toggleForms] = useToggle(true);
+  const [isDarkMode, toggleDarkMode] = useToggle(false);
   const previousSearch = usePrevious(searchTerm);
 
-  
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const focusSearchInput = (): void => {
     searchInputRef.current?.focus();
   };
 
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
       setItems(mockItems);
       setIsLoading(false);
-    }, 500);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, []);
-
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(event.target.value);
@@ -104,12 +106,15 @@ function App() {
     setItemForm({ title: "", location: "", status: "lost", reportedBy: "" });
   };
 
-  const handleClaimSubmit = (itemId: number, userId: number): void => {
+  const handleClaimSubmit = (itemId: number, userId?: number): void => {
+    const activeUserId = userId ?? selectedUser?.id ?? users[0]?.id;
+    if (!activeUserId) return;
+
     const claimedItem = items.find((item) => item.id === itemId);
     const newClaim: Claim & { status: "pending" | "verified"; itemTitle: string } = {
       id: Date.now(),
       itemId,
-      claimedBy: userId,
+      claimedBy: activeUserId,
       verifiedBy: undefined,
       submittedAt: new Date(),
       status: "pending",
@@ -128,14 +133,10 @@ function App() {
     );
   };
 
-
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
   const filteredItems = useMemo(() => {
-    if (!normalizedSearchTerm) {
-      return items;
-    }
-
+    if (!normalizedSearchTerm) return items;
     return items.filter((item) => {
       const searchableText = `${item.title} ${item.location} ${item.description}`.toLowerCase();
       return searchableText.includes(normalizedSearchTerm);
@@ -144,240 +145,323 @@ function App() {
 
   const lostItems = items.filter((item) => item.status === "lost");
   const foundItems = items.filter((item) => item.status === "found");
-  const claimedItems = claims.map((claim) => claim);
 
-  
+  // Styled Loading State (Pulse UI)
   if (isLoading) {
     return (
-      <main className="app-shell">
-        <p>Loading Campus Lost & Found data...</p>
+      <main className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900 transition-colors">
+        <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
+          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-lg w-1/3"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+            <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+            <div className="h-32 bg-gray-300 dark:bg-gray-700 rounded-lg"></div>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading Campus Lost & Found data...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Styled Error State UI
+  if (isError) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900 transition-colors flex items-center justify-center">
+        <div className="max-w-md w-full rounded-xl border border-red-200 bg-red-50 p-6 dark:bg-red-950/40 dark:border-red-900 text-center">
+          <h2 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">Unable to load data</h2>
+          <p className="text-sm text-red-600 dark:text-red-400 mb-4">Something went wrong while fetching campus records.</p>
+          <button
+            onClick={() => setIsError(false)}
+            className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 dark:bg-red-500"
+          >
+            Try Again
+          </button>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="app-shell">
-      <header className="app-header">
-        <div className="header-left">
-          <div className="logo">🏫</div>
-          <div>
-            <h1 className="app-title">Campus Lost & Found</h1>
-            {selectedUser && <p className="meta">Active Student: <strong>{selectedUser.name}</strong></p>}
+    <div className={isDarkMode ? "dark" : ""}>
+      <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-6">
+          
+          {/* Header Controls */}
+          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-800">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏫</span>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Campus Lost & Found</h1>
+                {selectedUser && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    Active Student: <strong>{selectedUser.name}</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleDarkMode}
+                className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-white"
+              >
+                {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsError(true)}
+                className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 dark:bg-red-950/60 dark:text-red-300"
+              >
+                Simulate Error
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleForms}
+                className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 dark:bg-blue-500"
+              >
+                {showForms ? "Hide Forms" : "Show Forms"}
+              </button>
+            </div>
+          </header>
+
+          {/* Search Bar */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search items by title or location..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+              <button
+                type="button"
+                onClick={focusSearchInput}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Focus
+              </button>
+            </div>
+
+            {previousSearch !== undefined && previousSearch !== searchTerm && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Previous search: <span className="italic font-medium">"{previousSearch}"</span>
+              </p>
+            )}
+          </div>
+
+          {/* Status Overview - Responsive Grid */}
+          <section className="space-y-3">
+            <h2 className="text-lg font-bold">Status Overview</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              {/* Lost Panel */}
+              <div className="rounded-lg border border-red-200 bg-red-50/50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-red-900 dark:text-red-300">Lost</h3>
+                  <SubmissionBadge status="lost" variant="compact" />
+                </div>
+                <p className="text-2xl font-bold text-red-700 dark:text-red-400">{lostItems.length}</p>
+                <ul className="mt-2 space-y-1 text-xs text-red-600 dark:text-red-300">
+                  {lostItems.length === 0 ? <li>No lost items</li> : lostItems.map((item) => <li key={item.id}>• {item.title}</li>)}
+                </ul>
+              </div>
+
+              {/* Found Panel */}
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-emerald-900 dark:text-emerald-300">Found</h3>
+                  <SubmissionBadge status="found" variant="compact" />
+                </div>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{foundItems.length}</p>
+                <ul className="mt-2 space-y-1 text-xs text-emerald-600 dark:text-emerald-300">
+                  {foundItems.length === 0 ? <li>No found items</li> : foundItems.map((item) => <li key={item.id}>• {item.title}</li>)}
+                </ul>
+              </div>
+
+              {/* Claims Panel */}
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-300">Claimed</h3>
+                  <SubmissionBadge status="pending" variant="compact" />
+                </div>
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{claims.length}</p>
+                <ul className="mt-2 space-y-1 text-xs text-blue-600 dark:text-blue-300">
+                  {claims.length === 0 ? <li>No claims yet</li> : claims.map((claim) => (
+                    <li key={claim.id}>• {claim.itemTitle} ({claim.status})</li>
+                  ))}
+                </ul>
+              </div>
+
+            </div>
+          </section>
+
+          {/* Main Content Grid (Forms & Lists) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Users Section */}
+              <section className="space-y-4">
+                <h2 className="text-xl font-bold">Students ({users.length})</h2>
+                
+                {showForms && (
+                  <form onSubmit={handleUserSubmit} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 space-y-3">
+                    <legend className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Add Student</legend>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input
+                        name="name"
+                        placeholder="Student Name"
+                        value={userForm.name}
+                        onChange={handleUserChange}
+                        required
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                      <input
+                        name="email"
+                        type="email"
+                        placeholder="Student Email"
+                        value={userForm.email}
+                        onChange={handleUserChange}
+                        required
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                    </div>
+                    <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                      Add Student
+                    </button>
+                  </form>
+                )}
+
+                {/* User Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {users.map((user) => (
+                    <UserCard
+                      key={user.id}
+                      user={user}
+                      isSelected={selectedUser?.id === user.id}
+                      onSelect={setSelectedUser}
+                      variant="default"
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {/* Items Section */}
+              <section className="space-y-4">
+                <h2 className="text-xl font-bold">Items ({filteredItems.length})</h2>
+
+                {showForms && (
+                  <form onSubmit={handleItemSubmit} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 space-y-3">
+                    <legend className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Report Item</legend>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input
+                        name="title"
+                        placeholder="Title"
+                        value={itemForm.title}
+                        onChange={handleItemChange}
+                        required
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                      <input
+                        name="location"
+                        placeholder="Location"
+                        value={itemForm.location}
+                        onChange={handleItemChange}
+                        required
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      />
+                      <select
+                        name="status"
+                        value={itemForm.status}
+                        onChange={handleItemChange}
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="lost">Lost</option>
+                        <option value="found">Found</option>
+                      </select>
+                      <select
+                        name="reportedBy"
+                        value={itemForm.reportedBy}
+                        onChange={handleItemChange}
+                        required
+                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="">Select Student</option>
+                        {users.map((u) => (
+                          <option key={u.id} value={String(u.id)}>{u.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                      Report Item
+                    </button>
+                  </form>
+                )}
+
+                {/* Responsive Items Grid */}
+                {filteredItems.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {searchTerm.trim() ? `No items matching "${searchTerm.trim()}"` : "No items listed."}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {filteredItems.map((item) => (
+                      <CourseCard
+                        key={item.id}
+                        item={item}
+                        reporterName={users.find((u) => u.id === item.reportedBy)?.name}
+                        onClaim={() => handleClaimSubmit(item.id)}
+                        variant="default"
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+            </div>
+
+            {/* Sidebar Claims List */}
+            <aside className="space-y-4">
+              <h2 className="text-xl font-bold">Claims Verification</h2>
+              <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                {claims.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No active claims.</p>
+                ) : (
+                  <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {claims.map((claim) => (
+                      <li key={claim.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{claim.itemTitle}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Claimed by User #{claim.claimedBy}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <SubmissionBadge status={claim.status} variant="compact" />
+                          {claim.status === "pending" && (
+                            <button
+                              type="button"
+                              onClick={() => verifyClaim(claim.id)}
+                              className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                            >
+                              Verify
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </aside>
+
           </div>
         </div>
-      </header>
-
-      
-      <div style={{ margin: "16px 0", display: "flex", gap: "10px", alignItems: "center" }}>
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Search items by title or location..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          style={{ flex: 1, padding: "8px" }}
-        />
-        <button type="button" onClick={focusSearchInput} className="primary-btn">
-          Focus Search
-        </button>
-        <button type="button" onClick={toggleForms} className="primary-btn">
-          {showForms ? "Hide Forms" : "Show Forms"}
-        </button>
-      </div>
-
-      {previousSearch !== undefined && previousSearch !== searchTerm && (
-        <p className="meta" style={{ marginBottom: "12px" }}>
-          Previous search term: "{previousSearch}"
-        </p>
-      )}
-
-      <section className="status-panel">
-        <h2>Status Overview</h2>
-        <div className="status-summary-grid">
-          <article className="status-card lost">
-            <h3>Lost</h3>
-            <p>{lostItems.length} item{lostItems.length === 1 ? "" : "s"}</p>
-            <ul>
-              {lostItems.length === 0 ? (
-                <li>No lost items</li>
-              ) : (
-                lostItems.map((item) => <li key={item.id}>{item.title}</li>)
-              )}
-            </ul>
-          </article>
-
-          <article className="status-card found">
-            <h3>Found</h3>
-            <p>{foundItems.length} item{foundItems.length === 1 ? "" : "s"}</p>
-            <ul>
-              {foundItems.length === 0 ? (
-                <li>No found items</li>
-              ) : (
-                foundItems.map((item) => <li key={item.id}>{item.title}</li>)
-              )}
-            </ul>
-          </article>
-
-          <article className="status-card claimed">
-            <h3>Claimed</h3>
-            <p>{claimedItems.length} claim{claimedItems.length === 1 ? "" : "s"}</p>
-            <ul>
-              {claimedItems.length === 0 ? (
-                <li>No claims yet</li>
-              ) : (
-                claimedItems.map((claim) => (
-                  <li key={claim.id}>{claim.itemTitle} ({claim.status})</li>
-                ))
-              )}
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <div className="grid grid-wide">
-        <div>
-       
-          <section className="form-panel">
-            <h2>Users</h2>
-            {showForms && (
-              <form className="claim-form" onSubmit={handleUserSubmit}>
-                <fieldset>
-                  <legend>Add a student</legend>
-                  <label>
-                    Name
-                    <input name="name" value={userForm.name} onChange={handleUserChange} required />
-                  </label>
-                  <label>
-                    Email
-                    <input name="email" type="email" value={userForm.email} onChange={handleUserChange} required />
-                  </label>
-                </fieldset>
-                <button type="submit" className="primary-btn">Add student</button>
-              </form>
-            )}
-
-            <div className="users-list">
-              <h3>Students ({users.length})</h3>
-              {users.length === 0 ? (
-                <p>No students available.</p>
-              ) : (
-                <ul>
-                  {users.map((user) => (
-                    <li 
-                      key={user.id} 
-                      onClick={() => setSelectedUser(user)}
-                      style={{ cursor: "pointer", background: selectedUser?.id === user.id ? "#e0f2fe" : undefined }}
-                    >
-                      <div>
-                        <strong>{user.name}</strong>
-                        <div className="meta">{user.email}</div>
-                      </div>
-                      {selectedUser?.id === user.id && <span>(Selected)</span>}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-
-         
-          <section className="form-panel" style={{ marginTop: 18 }}>
-            <h2>Items (Lost/Found Posts)</h2>
-            {showForms && (
-              <form className="claim-form" onSubmit={handleItemSubmit}>
-                <fieldset>
-                  <legend>Report a lost or found item</legend>
-                  <label>
-                    Title
-                    <input name="title" value={itemForm.title} onChange={handleItemChange} required />
-                  </label>
-                  <label>
-                    Location
-                    <input name="location" value={itemForm.location} onChange={handleItemChange} required />
-                  </label>
-                  <label>
-                    Status
-                    <select name="status" value={itemForm.status} onChange={handleItemChange}>
-                      <option value="lost">lost</option>
-                      <option value="found">found</option>
-                    </select>
-                  </label>
-                  <label>
-                    Reported By
-                    <select name="reportedBy" value={itemForm.reportedBy} onChange={handleItemChange} required>
-                      <option value="">Select student</option>
-                      {users.map((u) => (
-                        <option key={u.id} value={String(u.id)}>{u.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                </fieldset>
-                <button type="submit" className="primary-btn">Report item</button>
-              </form>
-            )}
-
-            <div className="items-list">
-              <h3>Items ({filteredItems.length})</h3>
-              {filteredItems.length === 0 ? (
-                <p>{searchTerm.trim() ? `No items found for "${searchTerm.trim()}".` : "No items found."}</p>
-              ) : (
-                <ul>
-                  {filteredItems.map((item) => (
-                    <li key={item.id}>
-                      <div>
-                        <strong>{item.title}</strong>
-                        <div className="meta">
-                          {item.location} · reported by {users.find((u) => u.id === item.reportedBy)?.name ?? String(item.reportedBy)}
-                        </div>
-                      </div>
-                      <div>
-                        <span className={`status-badge ${item.status}`}>{item.status}</span>
-                        {users.length > 0 && (
-                          <button 
-                            className="claim-button" 
-                            onClick={() => handleClaimSubmit(item.id, selectedUser ? selectedUser.id : users[0].id)}
-                          >
-                            Claim
-                          </button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-        </div>
-
-        <aside>
-         
-          <section className="claim-list">
-            <h2>Claims (Pending Verification)</h2>
-            {claims.length === 0 ? (
-              <p>No claims yet.</p>
-            ) : (
-              <ul>
-                {claims.map((claim) => (
-                  <li key={claim.id}>
-                    <div>
-                      <strong>Claim #{claim.id}</strong>
-                      <div className="meta">Item #{claim.itemId} · by User #{claim.claimedBy}</div>
-                    </div>
-                    <div>
-                      <span className={`status-badge ${claim.status}`}>{claim.status}</span>
-                      {claim.status === "pending" && (
-                        <button className="verify-button" onClick={() => verifyClaim(claim.id)}>Verify</button>
-                      )}
-                      {claim.status === "verified" && <span className="verified-text">✓ Verified</span>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </aside>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
 
