@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo } from "react";
+import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo, useCallback } from "react";
 import type { Claim, Item, User } from "./types/index";
 import useToggle from "./hooks/useToggle";
 import usePrevious from "./hooks/usePrevious";
 
 import UserCard from "./components/UserCard";
-import CourseCard from "./components/CourseCard";
+// Aliased CourseCard as ItemCard for standard domain naming clarity
+import ItemCard from "./components/CourseCard"; 
 import SubmissionBadge from "./components/SubmissionBadge";
 
 interface FormStateUser {
@@ -34,7 +35,7 @@ function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [claims, setClaims] = useState<(Claim & { status: "pending" | "verified"; itemTitle: string })[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
+
   // Loading & Error States
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
@@ -55,6 +56,7 @@ function App() {
     searchInputRef.current?.focus();
   };
 
+  // Initial Data Fetching Simulation
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
@@ -65,6 +67,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Event Handlers
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(event.target.value);
   };
@@ -74,41 +77,52 @@ function App() {
     setUserForm((current) => ({ ...current, [name]: value }));
   };
 
-  const handleUserSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleUserSubmit = useCallback((event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
+    if (!userForm.name.trim() || !userForm.email.trim()) return;
+
     const newUser: User = {
       id: Date.now(),
-      name: userForm.name,
-      email: userForm.email,
+      name: userForm.name.trim(),
+      email: userForm.email.trim(),
       role: "student",
       isActive: true,
     };
+
     setUsers((current) => [newUser, ...current]);
     setUserForm({ name: "", email: "" });
-  };
+  }, [userForm]);
 
   const handleItemChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = event.target;
     setItemForm((current) => ({ ...current, [name]: value }));
   };
 
-  const handleItemSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleItemSubmit = useCallback((event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
+    if (!itemForm.title.trim() || !itemForm.location.trim() || !itemForm.reportedBy) {
+      return;
+    }
+
     const newItem: Item = {
       id: Date.now(),
-      title: itemForm.title,
-      description: `${itemForm.status} item`,
-      location: itemForm.location,
+      title: itemForm.title.trim(),
+      description: `${itemForm.status.toUpperCase()} item reported at ${itemForm.location.trim()}`,
+      location: itemForm.location.trim(),
       reportedBy: Number(itemForm.reportedBy),
       status: itemForm.status,
     };
+
     setItems((current) => [newItem, ...current]);
     setItemForm({ title: "", location: "", status: "lost", reportedBy: "" });
-  };
+  }, [itemForm]);
 
-  const handleClaimSubmit = (itemId: number, userId?: number): void => {
+  const handleClaimSubmit = useCallback((itemId: number, userId?: number): void => {
     const activeUserId = userId ?? selectedUser?.id ?? users[0]?.id;
-    if (!activeUserId) return;
+    if (!activeUserId) {
+      alert("Please select or add a student to submit a claim.");
+      return;
+    }
 
     const claimedItem = items.find((item) => item.id === itemId);
     const newClaim: Claim & { status: "pending" | "verified"; itemTitle: string } = {
@@ -123,16 +137,21 @@ function App() {
 
     setClaims((current) => [newClaim, ...current]);
     setItems((current) => current.filter((item) => item.id !== itemId));
-  };
+  }, [items, selectedUser, users]);
 
-  const verifyClaim = (claimId: number): void => {
+  const verifyClaim = useCallback((claimId: number): void => {
+    const activeVerifierId = selectedUser?.id ?? users[0]?.id ?? 1;
+
     setClaims((current) =>
       current.map((claim) =>
-        claim.id === claimId ? { ...claim, status: "verified", verifiedBy: Date.now() } : claim
+        claim.id === claimId 
+          ? { ...claim, status: "verified", verifiedBy: activeVerifierId } 
+          : claim
       )
     );
-  };
+  }, [selectedUser, users]);
 
+  // Computed Values & Memoization
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
   const filteredItems = useMemo(() => {
@@ -143,10 +162,14 @@ function App() {
     });
   }, [items, normalizedSearchTerm]);
 
-  const lostItems = items.filter((item) => item.status === "lost");
-  const foundItems = items.filter((item) => item.status === "found");
+  const { lostItems, foundItems } = useMemo(() => {
+    return {
+      lostItems: items.filter((item) => item.status === "lost"),
+      foundItems: items.filter((item) => item.status === "found"),
+    };
+  }, [items]);
 
-  // Styled Loading State (Pulse UI)
+  // Loading State UI
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900 transition-colors">
@@ -163,14 +186,15 @@ function App() {
     );
   }
 
-  // Styled Error State UI
+  // Error State UI
   if (isError) {
     return (
       <main className="min-h-screen bg-gray-50 p-6 dark:bg-gray-900 transition-colors flex items-center justify-center">
-        <div className="max-w-md w-full rounded-xl border border-red-200 bg-red-50 p-6 dark:bg-red-950/40 dark:border-red-900 text-center">
-          <h2 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">Unable to load data</h2>
-          <p className="text-sm text-red-600 dark:text-red-400 mb-4">Something went wrong while fetching campus records.</p>
+        <div className="max-w-md w-full rounded-xl border border-red-200 bg-red-50 p-6 dark:bg-red-950/40 dark:border-red-900 text-center space-y-3">
+          <h2 className="text-lg font-bold text-red-800 dark:text-red-300">Unable to load data</h2>
+          <p className="text-sm text-red-600 dark:text-red-400">Something went wrong while fetching campus records.</p>
           <button
+            type="button"
             onClick={() => setIsError(false)}
             className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 dark:bg-red-500"
           >
@@ -185,11 +209,11 @@ function App() {
     <div className={isDarkMode ? "dark" : ""}>
       <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          
+
           {/* Header Controls */}
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-800">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🏫</span>
+              <span className="text-3xl" role="img" aria-label="school icon">🏫</span>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Campus Lost & Found</h1>
                 {selectedUser && (
@@ -233,7 +257,7 @@ function App() {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search items by title or location..."
+                placeholder="Search items by title, description, or location..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -254,11 +278,11 @@ function App() {
             )}
           </div>
 
-          {/* Status Overview - Responsive Grid */}
+          {/* Status Overview Panel */}
           <section className="space-y-3">
             <h2 className="text-lg font-bold">Status Overview</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              
+
               {/* Lost Panel */}
               <div className="rounded-lg border border-red-200 bg-red-50/50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
                 <div className="flex items-center justify-between mb-2">
@@ -300,44 +324,15 @@ function App() {
             </div>
           </section>
 
-          {/* Main Content Grid (Forms & Lists) */}
+          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
+
             <div className="lg:col-span-2 space-y-6">
-              
+
               {/* Users Section */}
               <section className="space-y-4">
                 <h2 className="text-xl font-bold">Students ({users.length})</h2>
-                
-                {showForms && (
-                  <form onSubmit={handleUserSubmit} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 space-y-3">
-                    <legend className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Add Student</legend>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <input
-                        name="name"
-                        placeholder="Student Name"
-                        value={userForm.name}
-                        onChange={handleUserChange}
-                        required
-                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      />
-                      <input
-                        name="email"
-                        type="email"
-                        placeholder="Student Email"
-                        value={userForm.email}
-                        onChange={handleUserChange}
-                        required
-                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-                      Add Student
-                    </button>
-                  </form>
-                )}
 
-                {/* User Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {users.map((user) => (
                     <UserCard
@@ -403,7 +398,7 @@ function App() {
                   </form>
                 )}
 
-                {/* Responsive Items Grid */}
+                {/* Items Grid */}
                 {filteredItems.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {searchTerm.trim() ? `No items matching "${searchTerm.trim()}"` : "No items listed."}
@@ -411,7 +406,7 @@ function App() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {filteredItems.map((item) => (
-                      <CourseCard
+                      <ItemCard
                         key={item.id}
                         item={item}
                         reporterName={users.find((u) => u.id === item.reportedBy)?.name}
@@ -437,7 +432,9 @@ function App() {
                       <li key={claim.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
                         <div>
                           <p className="text-sm font-semibold">{claim.itemTitle}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Claimed by User #{claim.claimedBy}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Claimed by Student #{claim.claimedBy}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <SubmissionBadge status={claim.status} variant="compact" />
@@ -445,7 +442,7 @@ function App() {
                             <button
                               type="button"
                               onClick={() => verifyClaim(claim.id)}
-                              className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                              className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
                             >
                               Verify
                             </button>
