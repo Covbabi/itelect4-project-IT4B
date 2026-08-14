@@ -333,34 +333,6 @@ function App() {
               <section className="space-y-4">
                 <h2 className="text-xl font-bold">Students ({users.length})</h2>
 
-                {showForms && (
-                  <form onSubmit={handleUserSubmit} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 space-y-3">
-                    <legend className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Add Student</legend>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <input
-                        name="name"
-                        placeholder="Student Name"
-                        value={userForm.name}
-                        onChange={handleUserChange}
-                        required
-                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      />
-                      <input
-                        name="email"
-                        type="email"
-                        placeholder="Student Email"
-                        value={userForm.email}
-                        onChange={handleUserChange}
-                        required
-                        className="rounded border border-gray-300 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <button type="submit" className="rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-                      Add Student
-                    </button>
-                  </form>
-                )}
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {users.map((user) => (
                     <UserCard
