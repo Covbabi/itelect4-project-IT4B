@@ -1,0 +1,38 @@
+{
+  "items": [
+    {
+      "id": "1",
+      "title": "Blue Backpack",
+      "description": "Navy blue Jansport backpack with water bottle in side pocket.",
+      "location": "Library 2nd Floor",
+      "reportedBy": 1,
+      "status": "lost"
+    },
+    {
+      "id": "2",
+      "title": "Graphing Calculator",
+      "description": "TI-84 Plus CE, black color, has a sticker on the back.",
+      "location": "Science Lab 3",
+      "reportedBy": 2,
+      "status": "found"
+    },
+    {
+      "id": "3",
+      "title": "AirPods Pro",
+      "description": "White charging case with a clear silicone cover.",
+      "location": "Student Center Cafeteria",
+      "reportedBy": 1,
+      "status": "lost"
+    }
+  ],
+  "claims": [
+    {
+      "id": "1",
+      "itemId": 2,
+      "claimedBy": 1,
+      "submittedAt": "2026-08-10T10:30:00.000Z",
+      "status": "pending",
+      "itemTitle": "Graphing Calculator"
+    }
+  ]
+}
