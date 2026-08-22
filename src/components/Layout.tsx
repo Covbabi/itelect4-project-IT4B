@@ -1,11 +1,18 @@
+import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router";
-import useToggle from "../hooks/useToggle";
 import useAuthStore from "../store/authStore";
+import useUiStore from "../store/uiStore";
 
 function Layout() {
-  const [isDarkMode, toggleDarkMode] = useToggle(false);
+  const isDarkMode = useUiStore((state) => state.isDarkMode);
+  const toggleDarkMode = useUiStore((state) => state.toggleDarkMode);
   const userName = useAuthStore((state) => state.userName);
   const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.classList.toggle("light", !isDarkMode);
+  }, [isDarkMode]);
 
   const base = "rounded px-3 py-1.5 text-sm transition-colors";
   const activeLink = `${base} bg-blue-600 font-semibold text-white`;
@@ -23,12 +30,6 @@ function Layout() {
           </span>
           <NavLink to="/" end className={linkClass}>
             Dashboard
-          </NavLink>
-          <NavLink to="/items" className={linkClass}>
-            Items
-          </NavLink>
-          <NavLink to="/claims" className={linkClass}>
-            My Claims
           </NavLink>
 
           {userName === null ? (

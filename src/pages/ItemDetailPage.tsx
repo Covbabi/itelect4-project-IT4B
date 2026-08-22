@@ -1,18 +1,31 @@
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router";
+import type { Item } from "../types/index";
 import CourseCard from "../components/CourseCard";
-import { sampleItems } from "../data/mockData";
+import { fetchItemById } from "../api/client";
 
 function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const itemId = id ? parseInt(id, 10) : NaN;
-  const item = sampleItems.find((i) => i.id === itemId);
+  const { data, isPending, isError, error } = useQuery<Item>({
+    queryKey: ["items", id],
+    queryFn: () => fetchItemById(id!),
+    enabled: id !== undefined,
+  });
 
-  if (!item) {
+  if (isPending) {
+    return (
+      <div className="animate-pulse p-6 text-gray-500">
+        Loading item details...
+      </div>
+    );
+  }
+
+  if (isError) {
     return (
       <div className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-        No item found with ID "{id}"
+        {error.message}
       </div>
     );
   }
@@ -22,7 +35,7 @@ function ItemDetailPage() {
       <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
         Item Details
       </h2>
-      <CourseCard item={item} />
+      <CourseCard item={data} />
       <button
         onClick={() => navigate("/items")}
         className="mt-4 rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"

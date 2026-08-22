@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router";
 import type { Claim, Item, User } from "./types/index";
 import useToggle from "./hooks/useToggle";
 import usePrevious from "./hooks/usePrevious";
-
 import UserCard from "./components/UserCard";
-// Aliased CourseCard as ItemCard for standard domain naming clarity
 import ItemCard from "./components/CourseCard"; 
 import SubmissionBadge from "./components/SubmissionBadge";
+import useAuthStore from "./store/authStore";
 
 interface FormStateUser {
   name: string;
@@ -36,7 +36,6 @@ function App() {
   const [claims, setClaims] = useState<(Claim & { status: "pending" | "verified"; itemTitle: string })[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Loading & Error States
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -45,18 +44,29 @@ function App() {
   const [userForm, setUserForm] = useState<FormStateUser>({ name: "", email: "" });
   const [itemForm, setItemForm] = useState<FormStateItem>({ title: "", location: "", status: "lost", reportedBy: "" });
 
-  // Custom Hooks
   const [showForms, toggleForms] = useToggle(true);
   const [isDarkMode, toggleDarkMode] = useToggle(false);
   const previousSearch = usePrevious(searchTerm);
-
+  const navigate = useNavigate();
+  const userEmail = useAuthStore((state) => state.email);
+  const logout = useAuthStore((state) => state.logout);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.classList.toggle("light", !isDarkMode);
+  }, [isDarkMode]);
 
   const focusSearchInput = (): void => {
     searchInputRef.current?.focus();
   };
 
-  // Initial Data Fetching Simulation
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
@@ -225,28 +235,26 @@ function App() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {userEmail && (
+                <span className="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                  {userEmail}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 dark:bg-red-950/60 dark:text-red-300"
+              >
+                Log Out
+              </button>
+
               <button
                 type="button"
                 onClick={toggleDarkMode}
                 className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-white"
               >
                 {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsError(true)}
-                className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 dark:bg-red-950/60 dark:text-red-300"
-              >
-                Simulate Error
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleForms}
-                className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 dark:bg-blue-500"
-              >
-                {showForms ? "Hide Forms" : "Show Forms"}
               </button>
             </div>
           </header>

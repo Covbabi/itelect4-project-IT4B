@@ -8,29 +8,32 @@ export const sampleUser: User = {
   isActive: true,
 };
 
+export const sampleUsers: User[] = [
+  sampleUser,
+  {
+    id: 2,
+    name: "Maria Clara",
+    email: "maria@example.com",
+    role: "student",
+    isActive: true,
+  },
+];
+
 export const sampleItems: Item[] = [
   {
     id: 101,
-    title: "Blue Tumbler",
-    description: "Hydro Flask 32oz lost in the Computer Lab.",
-    location: "Lab 3, 3rd Floor",
+    title: "Blue Hydro Flask",
+    description: "Found blue insulated bottle",
+    location: "Library 2nd Floor",
     reportedBy: 1,
-    status: "lost",
-  },
-  {
-    id: 102,
-    title: "Graphing Calculator",
-    description: "Casio FX-991EX found near the cafeteria.",
-    location: "Student Center",
-    reportedBy: 2,
     status: "found",
   },
   {
-    id: 103,
-    title: "Black Backpack",
-    description: "Contains notebooks and a pencil case.",
-    location: "Library 2nd Floor",
-    reportedBy: 1,
+    id: 102,
+    title: "Black Wallet",
+    description: "Leather wallet with IDs",
+    location: "Gymnasium",
+    reportedBy: 2,
     status: "lost",
   },
 ];

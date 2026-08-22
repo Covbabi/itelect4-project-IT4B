@@ -1,5 +1,6 @@
-import type { User, Item, Claim, UserUpdate, ItemPreview, PublicUser, RoleCount, ApiResponse } from "../types/index.ts";
-import { ClaimStatus, Role } from "../types/index.ts";
+import type { User, Item, Claim, UserUpdate, ItemPreview, PublicUser, RoleCount, ApiResponse } from "./types/index";
+import { ClaimStatus, Role } from "./types/index";
+
 
 
 const projectName: string = "Campus Lost & Found Tracker";

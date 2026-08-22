@@ -8,7 +8,7 @@ export interface User {
 }
 
 export interface Item {
-  id: number;
+  id: number; // Changed back to number to match app data
   title: string;
   description: string;
   location: string;
@@ -22,9 +22,10 @@ export interface Claim {
   claimedBy: number;
   verifiedBy?: number;
   submittedAt: Date;
+  status?: "pending" | "verified";
+  itemTitle?: string;
 }
 
-// Generic response wrapper for API-style functions
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -47,3 +48,12 @@ export const Role = {
   Admin: "security_admin",
 } as const;
 
+// --- SESSION 7 ADDITIONS ---
+// Handles over-the-wire JSON format (ISO strings for Date)
+export type ApiClaim = Omit<Claim, "id" | "submittedAt"> & {
+  id: string;
+  submittedAt: string;
+};
+
+// Represents payload required to send when creating a new claim
+export type NewClaim = Omit<ApiClaim, "id">;
