@@ -2,6 +2,7 @@ import type { User, Item, Claim, UserUpdate, ItemPreview, PublicUser, RoleCount,
 import { ClaimStatus, Role } from "./types/index";
 
 
+
 const projectName: string = "Campus Lost & Found Tracker";
 
 
