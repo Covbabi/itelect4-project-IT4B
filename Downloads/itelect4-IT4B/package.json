@@ -1,9 +1,0 @@
-{
-  "name": "itelect4-it4b",
-  "private": true,
-  "scripts": {
-    "dev": "npm --prefix ./itelect4-project-IT4B run dev",
-    "build": "npm --prefix ./itelect4-project-IT4B run build",
-    "api": "npx json-server db.json --port 3001"
-  }
-}
