@@ -2,9 +2,7 @@ import { useState, useEffect, useRef, ChangeEvent, FormEvent, useMemo, useCallba
 import type { Claim, Item, User } from "./types/index";
 import useToggle from "./hooks/useToggle";
 import usePrevious from "./hooks/usePrevious";
-
 import UserCard from "./components/UserCard";
-// Aliased CourseCard as ItemCard for standard domain naming clarity
 import ItemCard from "./components/CourseCard"; 
 import SubmissionBadge from "./components/SubmissionBadge";
 
@@ -36,7 +34,6 @@ function App() {
   const [claims, setClaims] = useState<(Claim & { status: "pending" | "verified"; itemTitle: string })[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // Loading & Error States
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -45,18 +42,22 @@ function App() {
   const [userForm, setUserForm] = useState<FormStateUser>({ name: "", email: "" });
   const [itemForm, setItemForm] = useState<FormStateItem>({ title: "", location: "", status: "lost", reportedBy: "" });
 
-  // Custom Hooks
   const [showForms, toggleForms] = useToggle(true);
   const [isDarkMode, toggleDarkMode] = useToggle(false);
   const previousSearch = usePrevious(searchTerm);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.classList.toggle("light", !isDarkMode);
+  }, [isDarkMode]);
+
   const focusSearchInput = (): void => {
     searchInputRef.current?.focus();
   };
 
-  // Initial Data Fetching Simulation
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
