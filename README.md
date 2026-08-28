@@ -1,30 +1,39 @@
 # 🏫 Campus Lost & Found Tracker
 
-A minimal, high-performance React + TypeScript web application built with Vite to track missing and found items around campus. 
+A high-performance React + TypeScript web application built with Vite to track, manage, and verify missing and found items around campus.
 
-This system handles two core user roles: **Students** (who report items and file ownership claims) and **Security Admins** (who review details and verify claims).
+The system serves two core roles: **Students** (who report lost items, manage posts, and file ownership claims) and **Security Admins** (who review item reports and verify claims).
 
 ---
 
-## 🛠️ TypeScript Features Implemented (ITELECT4 Requirements)
+## 🛠️ Key Features & Architecture
 
-This project demonstrates advanced TypeScript patterns integrated directly into the React architecture:
+### 1. TypeScript Design Patterns
+* **App Interfaces**: Fully typed core entities (`User`, `Item`, and `Claim`).
+* **Generic Utilities**: Reusable API contracts (`ApiResponse<T>`) and generic helpers (`getById`, `getFirst`).
+* **Utility Types**: Leverages `Partial<T>` for asset updates, `Pick<T, K>` for summary views, `Omit<T, K>` for public profiles, and `Record<K, T>` for analytical metrics.
+* **Type Narrowing**: Uses strict `typeof` and `instanceof` runtime guards to process polymorphic inputs.
 
-*   **App Interfaces**: Fully defined structures for `User`, `Item` (lost/found posts), and `Claim` matching the application domain.
-*   **Generic Components/Interfaces**: Includes the reusable `ApiResponse<T>` layout and data-fetching helpers like `getById` and `getFirst`.
-*   **Utility Type Configurations**: Leverages `Partial<T>` for asset updates, `Pick<T, K>` for fast item summaries, `Omit<T, K>` for public user profiles, and `Record<K, T>` for dashboard analytics.
-*   **Enums**: Features strong status management via `ClaimStatus` (runtime tracking) and `Role` (compile-time inlining).
-*   **Type Narrowing**: Uses strict `typeof` and `instanceof` guards to handle polymorphic data inputs safely.
+### 2. Form Management & Validation
+* **React Hook Form**: Replaces standard `useState` form handling to improve rendering performance and control `onBlur` field validation.
+* **Zod Schemas**: Strict runtime validation schemas paired with `z.infer` for automated type safety.
+* **Custom Refinements**: Built-in domain validation rules using `.refine()` (e.g., URL constraints).
+
+### 3. UI & Project Configuration
+* **Shadcn UI**: Accessible component primitives (`Button`, `Input`, `Label`) styled with Tailwind CSS across multiple app pages.
+* **Path Aliases**: Modern `@/*` path mapping configured across `tsconfig.json`, `tsconfig.app.json`, and `vite.config.ts`.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) installed.
+* [Node.js](https://nodejs.org/) (v18 or higher)
+* `npm` or `pnpm`
 
 ### Installation
-1. Clone or open the project folder in VS Code.
-2. Install the necessary dependencies:
+
+1. **Clone the repository:**
    ```bash
-   npm install
+   git clone <repository-url>
+   cd itelect4-project-IT4B

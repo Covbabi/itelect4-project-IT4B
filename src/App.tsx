@@ -45,7 +45,6 @@ function App() {
   const [itemForm, setItemForm] = useState<FormStateItem>({ title: "", location: "", status: "lost", reportedBy: "" });
 
   const [showForms, toggleForms] = useToggle(true);
-  const [isDarkMode, toggleDarkMode] = useToggle(false);
   const previousSearch = usePrevious(searchTerm);
   const navigate = useNavigate();
   const userEmail = useAuthStore((state) => state.email);
@@ -57,16 +56,10 @@ function App() {
     navigate("/login");
   };
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDarkMode);
-    document.documentElement.classList.toggle("light", !isDarkMode);
-  }, [isDarkMode]);
-
   const focusSearchInput = (): void => {
     searchInputRef.current?.focus();
   };
 
-  
   useEffect(() => {
     const timer = setTimeout(() => {
       setUsers(mockUsers);
@@ -216,7 +209,7 @@ function App() {
   }
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
+    <div>
       <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200 p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
 
@@ -247,14 +240,6 @@ function App() {
                 className="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 dark:bg-red-950/60 dark:text-red-300"
               >
                 Log Out
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleDarkMode}
-                className="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-gray-700 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-white"
-              >
-                {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
               </button>
             </div>
           </header>

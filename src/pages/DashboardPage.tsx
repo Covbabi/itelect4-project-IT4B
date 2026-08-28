@@ -1,40 +1,14 @@
-import { useState } from "react";
-import type { User } from "../types/index";
-import UserCard from "../components/UserCard";
-import useToggle from "../hooks/useToggle";
-import { sampleUser } from "../data/mockData";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-function DashboardPage() {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showDetails, toggleDetails] = useToggle(false);
-
+export default function DashboardPage() {
   return (
-    <div className="max-w-4xl">
-      <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-        Dashboard
-      </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <UserCard
-          user={sampleUser}
-          onSelect={setSelectedUser}
-          isSelected={selectedUser?.id === sampleUser.id}
-        />
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex gap-2 max-w-sm">
+        <Input placeholder="Search submissions..." />
+        <Button variant="outline">Search</Button>
       </div>
-      
-      <button
-        onClick={toggleDetails}
-        className="mt-4 rounded bg-gray-200 px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white"
-      >
-        {showDetails ? "Hide" : "Show"} Account Details
-      </button>
-
-      {showDetails && selectedUser !== null && (
-        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-          Selected User: <span className="font-semibold">{selectedUser.name}</span> ({selectedUser.role})
-        </p>
-      )}
     </div>
   );
 }
-
-export default DashboardPage;

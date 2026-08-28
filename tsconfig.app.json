@@ -24,3 +24,10 @@
   },
   "include": ["src"]
 }
+
+"compilerOptions": {
+  "paths": {
+    "@/*": ["./src/*"]
+  }
+}
+```[cite: 2]
