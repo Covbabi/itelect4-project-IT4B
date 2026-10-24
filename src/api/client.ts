@@ -1,6 +1,8 @@
-import type { Item, ApiClaim, NewClaim } from "../types/index";
+import type { Item, ApiClaim, NewClaim, AiReview } from "../types/index";
 
-export const API_URL = "http://localhost:4000/api";
+export const API_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, "")}/api`
+  : "http://localhost:4000/api";
 
 function getAuthHeaders(): HeadersInit {
   const raw = localStorage.getItem("lost-found-auth");
@@ -75,3 +77,25 @@ export async function createClaim(newClaim: NewClaim): Promise<ApiClaim> {
 
   return res.json();
 }
+
+// ===== SESSION 11: one more private call ===============================
+// ---- ai: private, like submissions. The token goes on automatically,
+// which matters more here than anywhere: without it, anyone could
+// spend your Gemini quota.
+export async function askAi(prompt: string): Promise<AiReview> {
+  const res = await fetch(`${API_URL}/ai`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to get AI review");
+  }
+
+  return res.json();
+}

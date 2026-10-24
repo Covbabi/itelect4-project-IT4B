@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import ReviewPage from "./pages/ReviewPage";
 import App from "./App";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -15,6 +16,8 @@ function Router() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<App />} />
+          {/* Session 11: behind the same guard -- the API refuses it without a token anyway */}
+          <Route path="/review" element={<ReviewPage />} />
           <Route path="/*" element={<App />} />
         </Route>
       </Route>
