@@ -9,4 +9,22 @@
 
 
 
-This README contains the deployed links for both the backend and the frontend project. 
+This README contains the project links and setup instructions for both the backend and frontend.
+
+## 🚀 Getting Started
+
+### Prerequisites
+Ensure you have [Node.js](https://nodejs.org/) installed.
+
+### Installation
+1. Clone or open the project folder in VS Code.
+2. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
+
+## Project Folders
+
+- Backend folder: `c:\Users\asus\Downloads\itelect4-IT4B\itelect4-backend`
+- Frontend folder: `c:\Users\asus\Downloads\itelect4-IT4B\itelect4-project-IT4B`
+
