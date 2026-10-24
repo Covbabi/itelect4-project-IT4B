@@ -98,4 +98,4 @@ export async function askAi(prompt: string): Promise<AiReview> {
   }
 
   return res.json();
-}
+}
