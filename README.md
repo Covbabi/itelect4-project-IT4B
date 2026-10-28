@@ -1,3 +1,5 @@
+[![CI](https://github.com/Covbabi/itelect4-project-IT4B/actions/workflows/ci.yml/badge.svg)](https://github.com/Covbabi/itelect4-project-IT4B/actions/workflows/ci.yml)
+
 # ITELECT4 Backend and Frontend
 
 ## Project Links
@@ -27,4 +29,3 @@ Ensure you have [Node.js](https://nodejs.org/) installed.
 
 - Backend folder: `c:\Users\asus\Downloads\itelect4-IT4B\itelect4-backend`
 - Frontend folder: `c:\Users\asus\Downloads\itelect4-IT4B\itelect4-project-IT4B`
-
